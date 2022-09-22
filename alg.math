@@ -1,0 +1,18 @@
+
+let sqrt(x) = x^0.5
+let dist(a, b, c, d) = sqrt((c - a)^2 + (d - b)^2)
+
+dist(0, 0, 10, 10)
+
+shape (a + b) * c into a*c + b*c
+shape a * (b + c) into a*b + a*c
+shape (a + b)^2 into (a + b)(a + b)
+shape a * a into a ^ 2
+shape a*b + a*b into 2*a*b
+
+expr (x + y)^2
+apply :2 # (x + y)(x + y)
+apply :1 # (x + y)*x + (x + y)*y
+apply :0 # x*x + y*x + x*y + y*y
+apply :3 # x^2 + y*x + x*y + y^2
+apply :4 # x^2 + 2xy + y^2
