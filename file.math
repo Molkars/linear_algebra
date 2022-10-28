@@ -1,1 +1,10 @@
-let f(x int) int = {}
+let f(x int) int = 3 * x + 4
+let rt(x num) num = x ^ 0.5
+let decay(t num) num = 4 * (1 + -0.18)^(t/11)
+
+{
+    mat = [1, 0, 0;
+           1, 1, 8;
+           1, 3, 8;
+           1, 4, 20]
+}

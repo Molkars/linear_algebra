@@ -1,19 +1,20 @@
 // num = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
 //     int = { ("+" | "-")? ~ ASCII_DIGIT+ }
 
-Int = { ("+" | "-")? ~ ASCII_DIGIT+ }
-Uint = { ASCII_DIGIT+ }
-Dec = { Int ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ Int)? }
-Hex = { "0x" ~  ASCII_HEX_DIGIT+ }
-Ident = { ASCII_ALPHA ~ (ASCII_ALPHANUMERIC)* }
+Int = @{ ("+" | "-") ~ ASCII_DIGIT+ }
+Uint = @{ ASCII_DIGIT+ }
+Dec = @{ Uint ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ Uint)? }
+Hex = @{ "0x" ~  ASCII_HEX_DIGIT+ }
+Ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC)* }
+Bool = { "true" | "false" }
 Underscore = { "_" }
 ArrTy = { "[" ~ Ty ~ ";" ~ (Uint | Underscore) ~ "]" }
 MatrixTy = { "[" ~ Ty ~ ";" ~ ((Uint | Underscore) ~ "x" ~ (Uint | Underscore)) ~ "]"}
-Ty = { Ident | ArrTy | MatrixTy }
+Ty = { Ident | ArrTy | MatrixTy | Unit }
 
 Expr = { Assign }
 Assign = { Or ~ (AssignOp ~ Or)* }
-    AssignOp = _{"="}
+    AssignOp = {"="}
 Or = { And ~ (OrOp ~ And)* }
     OrOp = {"|"}
 And = { Equality ~ (AndOp ~ Equality)* }
@@ -24,51 +25,27 @@ Comparative = { Additive ~ (CompOp ~ Additive)* }
     CompOp = {"<=" | "<" | ">=" | ">"}
 Additive = { Multiplicative ~ ( AddOp ~ Multiplicative)* }
     AddOp = {"+" | "-"}
-Multiplicative = { Exponent ~ (MultOp ~ Exponent)* }
+Multiplicative = { Unary ~ (MultOp ~ Unary)* }
     MultOp = {"*" | "/" | "%" }
-// unary = { unary_op* ~ exponent }
-//     unary_op = _{"+" | "-" | "!"}
-Exponent = { Term ~ (ExpOp ~ Term)* }
+Unary = { UnaryOp* ~ Exponential }
+    UnaryOp = {"+" | "-" | "!"}
+Exponential = { Invoke ~ (ExpOp ~ Invoke)* }
     ExpOp = {"^"}
-Term = { If | Ident | Dec | Int | Block | Hex | Array | Matrix | "(" ~ Expr ~ ")" }
+Invoke = { Term ~ (InvokeOp)* }
+    InvokeOp = { "(" ~ (Expr ~ ("," ~ Expr)* ~ ","? )? ~")" | "[" ~ (Expr ~ ("," ~ Expr)* ~ ","? )? ~ "]" }
+Term = { If | Ident | Dec | Uint | Block | Hex | Bool | Array | Matrix | Group | Unit }
 
 If = { "if" ~ Expr ~ Block ~ ( "else" ~ "if" ~ Expr ~ Block )* ~ ("else" ~ Block )? }
+Block = {"{" ~ "\n"* ~ (Expr ~ "\n"*)* ~ "}" }
 Array = { "[" ~ Expr ~ ("," ~ Expr)* ~","? ~ "]"}
-Matrix = { "[" ~ ((Row ~ ";") | (Row ~ (";" ~ Row)* ~ ";"?)) ~ "]" }
+Matrix = { "[" ~ ((Row ~ (";" ~ Row)* ~ ";"?) | (Row ~ ";")) ~ "]" }
 Row = { Expr ~ ("," ~ Expr)* }
+Group = { "(" ~ Expr ~ ")" }
+Unit = { "()" }
 
 Func = { "let" ~ Ident ~ "(" ~ Arg ~("," ~ Arg)* ~ ")" ~ Ty ~ "=" ~ Expr }
     Arg = ${Ident ~ WHITESPACE+ ~ Ty }
-Block = {"{" ~ (Expr ~ "\n")* ~ "}" }
 
-Program = _{ SOI ~ "\n"* ~ (Func ~ "\n") * ~ Func? ~ EOI}
+Program = _{ SOI ~ "\n"* ~ ((Func | Expr) ~ "\n"*)* ~ EOI}
 
-// factor_op = _{ add | sub }
-//     add = {"+"}
-//     sub = {"-"}
-//
-// term_op = _{ mul | div | rem }
-//     mul = {"*"}
-//     div = {"/"}
-//     rem = {"%"}
-//
-// expr = { factor ~ (factor_op ~ factor)* }
-// factor = { term ~ (term_op ~ term)* }
-// term = { num | "(" ~ expr ~ ")" }
-// row = { expr ~ ("," ~ expr)* }
-// matrix = { "[" ~ row ~ (";" ~ row)+ ~ ";"? ~ "]" }
-
-// assign
-// or
-// and
-// not
-// comparison
-// additive
-// multiplicative
-// unary
-// exponent
-// num | matrix | (expr)
-
-
-
-WHITESPACE = _{ " " | "\t" }
+WHITESPACE = _{ " " | "\t" | "\n" }
